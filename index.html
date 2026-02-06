@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>dontpad</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #fff;
+  color: #000;
+}
+
+/* ===== KEY SCREEN ===== */
+#keyScreen {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#keyBox {
+  font-size: 18px;
+}
+
+#keyInput {
+  font-size: 18px;
+  padding: 4px 6px;
+  width: 220px;
+}
+
+/* ===== PAD SCREEN ===== */
+#padScreen {
+  display: none;
+  height: 100%;
+}
+
+#top {
+  height: 42px;
+  border-bottom: 1px solid #ccc;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#status {
+  font-size: 13px;
+  color: #666;
+}
+
+#pad {
+  width: 100%;
+  height: calc(100% - 42px);
+  border: none;
+  outline: none;
+  resize: none;
+  font-size: 15px;
+  line-height: 1.5;
+  padding: 10px;
+  box-sizing: border-box;
+}
+</style>
+</head>
+
+<body>
+
+<!-- ===== SCREEN 1: ENTER KEY ===== -->
+<div id="keyScreen">
+  <div id="keyBox">
+    <strong>Enter your key</strong> 
+    <input id="keyInput" placeholder="unique key" autofocus>
+  </div>
+</div>
+
+<!-- ===== SCREEN 2: PAD ===== -->
+<div id="padScreen">
+  <div id="top">
+    <strong>text area</strong>
+    <span id="padName"></span>
+    <span id="status">idle</span>
+  </div>
+
+  <textarea id="pad" spellcheck="false"></textarea>
+</div>
+
+<script>
+let ws;
+let room;
+let savingTimer = null;
+let suppress = false;
+
+const keyInput = document.getElementById("keyInput");
+const keyScreen = document.getElementById("keyScreen");
+const padScreen = document.getElementById("padScreen");
+const pad = document.getElementById("pad");
+const status = document.getElementById("status");
+const padName = document.getElementById("padName");
+
+/* ===== OPEN PAD ===== */
+async function openPad() {
+  room = keyInput.value.trim();
+  if (!room) return;
+
+  // UI switch (redirect feel)
+  keyScreen.style.display = "none";
+  padScreen.style.display = "block";
+  padName.textContent = " / " + room;
+  status.textContent = "loading...";
+
+  // Load last saved content
+  try {
+    const res = await fetch(
+      `https://chat-server.skybaseofj2.workers.dev/history?room=${encodeURIComponent(room)}`
+    );
+    const history = await res.json();
+    pad.value = history.length ? (history[history.length - 1].text || "") : "";
+  } catch {
+    pad.value = "";
+  }
+
+  // Open WebSocket
+  ws = new WebSocket(
+    `wss://chat-server.skybaseofj2.workers.dev/?room=${encodeURIComponent(room)}`
+  );
+
+  ws.onmessage = e => {
+    const m = JSON.parse(e.data);
+    if (typeof m.text !== "string") return;
+
+    suppress = true;
+    pad.value = m.text;
+    status.textContent = "saved";
+  };
+
+  pad.focus();
+  status.textContent = "ready";
+}
+
+/* ===== AUTO SAVE ===== */
+pad.addEventListener("input", () => {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+  if (suppress) {
+    suppress = false;
+    return;
+  }
+
+  status.textContent = "saving...";
+
+  clearTimeout(savingTimer);
+  savingTimer = setTimeout(() => {
+    ws.send(JSON.stringify({
+      user: "__pad__",
+      text: pad.value,
+      time: Date.now()
+    }));
+    status.textContent = "saved";
+  }, 400);
+});
+
+/* ===== ENTER TO OPEN PAD ===== */
+keyInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") openPad();
+});
+</script>
+
+</body>
+</html>
