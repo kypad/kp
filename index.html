@@ -16,9 +16,6 @@
 
 <style>
 
-/* =========================================================
-   VARIABLES
-========================================================= */
 
 :root {
 
@@ -46,9 +43,7 @@
 }
 
 
-/* =========================================================
-   GLOBAL
-========================================================= */
+
 
 * {
   box-sizing: border-box;
@@ -88,9 +83,6 @@ textarea {
 }
 
 
-/* =========================================================
-   KEY SCREEN
-========================================================= */
 
 #keyScreen {
 
@@ -159,9 +151,7 @@ textarea {
 }
 
 
-/* =========================================================
-   KEY CARD
-========================================================= */
+
 
 .key-card {
 
@@ -243,9 +233,6 @@ textarea {
 }
 
 
-/* =========================================================
-   KEY CARD TEXT
-========================================================= */
 
 .key-card h1 {
 
@@ -277,9 +264,6 @@ textarea {
 }
 
 
-/* =========================================================
-   KEY INPUT ROW
-========================================================= */
 
 .key-input-row {
 
@@ -292,9 +276,6 @@ textarea {
 }
 
 
-/* =========================================================
-   KEY INPUT
-========================================================= */
 
 #keyInput {
 
@@ -371,9 +352,6 @@ textarea {
 }
 
 
-/* =========================================================
-   ENTER BUTTON
-========================================================= */
 
 #enterButton {
 
@@ -440,9 +418,64 @@ textarea {
 }
 
 
-/* =========================================================
-   PAD SCREEN
-========================================================= */
+
+.generate-key-link {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  margin-top: 16px;
+
+  padding: 0;
+
+  border: none;
+
+  background: none;
+
+  color: var(--text-secondary);
+
+  font-size: 13px;
+
+  font-weight: 550;
+
+  cursor: pointer;
+
+  text-decoration: underline;
+
+  text-decoration-color: transparent;
+
+  transition:
+
+    color .15s ease,
+    text-decoration-color .15s ease;
+
+}
+
+
+.generate-key-link:hover {
+
+  color: var(--primary);
+
+  text-decoration-color: var(--primary);
+
+}
+
+
+.generate-key-link svg {
+
+  flex-shrink: 0;
+
+  width: 14px;
+
+  height: 14px;
+
+}
+
+
+
 
 #padScreen {
 
@@ -461,9 +494,7 @@ textarea {
 }
 
 
-/* =========================================================
-   TOP BAR
-========================================================= */
+
 
 #topBar {
 
@@ -502,9 +533,7 @@ textarea {
 }
 
 
-/* =========================================================
-   BACK BUTTON
-========================================================= */
+
 
 #backButton {
 
@@ -555,9 +584,7 @@ textarea {
 }
 
 
-/* =========================================================
-   KEY DISPLAY
-========================================================= */
+
 
 #keyDisplayArea {
 
@@ -617,9 +644,7 @@ textarea {
 }
 
 
-/* =========================================================
-   STATUS
-========================================================= */
+
 
 #status {
 
@@ -654,9 +679,6 @@ textarea {
 }
 
 
-/* =========================================================
-   UPDATE BUTTON
-========================================================= */
 
 #updateButton {
 
@@ -749,9 +771,7 @@ textarea {
 }
 
 
-/* =========================================================
-   EDITOR WORKSPACE
-========================================================= */
+
 
 #editorArea {
 
@@ -816,9 +836,7 @@ textarea {
 }
 
 
-/* =========================================================
-   PAPER
-========================================================= */
+
 
 #paper {
 
@@ -865,9 +883,6 @@ textarea {
 }
 
 
-/* =========================================================
-   TEXTAREA
-========================================================= */
 
 #pad {
 
@@ -1538,6 +1553,19 @@ and
 
     </div>
 
+
+    <button
+      id="generateKeyButton"
+      type="button"
+      class="generate-key-link"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3v18M3 12h18"></path>
+      </svg>
+      Generate a secure random key
+    </button>
+
+
   </div>
 
 </div>
@@ -1633,9 +1661,42 @@ and
 
 <script>
 
-/* =========================================================
-   VARIABLES
-========================================================= */
+
+
+function getApiHost() {
+
+  return atob(
+
+    "Y2hhdC1zZXJ2ZXIuc2t5YmFzZW9majIud29ya2Vycy5kZXY="
+
+  );
+
+}
+
+
+
+function generateSecureKey(length = 22) {
+
+  const charset =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  const bytes =
+    new Uint8Array(length);
+
+  crypto.getRandomValues(bytes);
+
+  return Array.from(
+
+    bytes,
+
+    b => charset[b % charset.length]
+
+  ).join("");
+
+}
+
+
+
 
 let ws;
 
@@ -1644,9 +1705,6 @@ let room;
 let suppress = false;
 
 
-/* =========================================================
-   ELEMENTS
-========================================================= */
 
 const keyInput =
   document.getElementById("keyInput");
@@ -1684,10 +1742,11 @@ const backButton =
   document.getElementById("backButton");
 
 
+const generateKeyButton =
+  document.getElementById("generateKeyButton");
 
-/* =========================================================
-   OPEN PAD
-========================================================= */
+
+
 
 async function openPad() {
 
@@ -1725,10 +1784,11 @@ async function openPad() {
     "loading...";
 
 
-  /* =====================================================
-     LOAD SAVED CONTENT
-     CLOUDFLARE ENDPOINT UNCHANGED
-  ===================================================== */
+  const apiHost =
+    getApiHost();
+
+
+
 
   try {
 
@@ -1736,7 +1796,7 @@ async function openPad() {
     const res =
       await fetch(
 
-        `https://chat-server.skybaseofj2.workers.dev/history?room=${encodeURIComponent(room)}`
+        `https://${apiHost}/history?room=${encodeURIComponent(room)}`
 
       );
 
@@ -1770,15 +1830,12 @@ async function openPad() {
 
 
 
-  /* =====================================================
-     WEBSOCKET
-     ENDPOINT UNCHANGED
-  ===================================================== */
+
 
   ws =
     new WebSocket(
 
-      `wss://chat-server.skybaseofj2.workers.dev/?room=${encodeURIComponent(room)}`
+      `wss://${apiHost}/?room=${encodeURIComponent(room)}`
 
     );
 
@@ -1889,6 +1946,30 @@ enterButton.addEventListener(
 
 
 /* =========================================================
+   GENERATE KEY BUTTON
+========================================================= */
+
+generateKeyButton.addEventListener(
+
+  "click",
+
+  () => {
+
+
+    keyInput.value =
+      generateSecureKey();
+
+
+    keyInput.focus();
+
+
+  }
+
+);
+
+
+
+/* =========================================================
    PRESS ENTER TO OPEN
 ========================================================= */
 
@@ -1983,8 +2064,6 @@ updateButton.addEventListener(
     status.textContent =
       "saving...";
 
-
-    /* Backend message format unchanged */
 
     ws.send(
 
