@@ -645,41 +645,69 @@ textarea {
 
 
 
-
+/* New dark status pill with glowing dot */
 #status {
 
   flex-shrink: 0;
-
-  min-width: 80px;
 
   margin:
     0 16px;
 
   padding:
-    6px 10px;
-
+    8px 16px;
+    
   border-radius:
-    20px;
-
+    24px;
+    
   background:
-    #f3f4f6;
-
+    #111111;
+    
   color:
-    var(--text-secondary);
+    #ffffff;
+    
+  font-size: 13px;
 
-  font-size: 11px;
-
-  font-weight: 600;
-
-  text-align: center;
-
+  font-weight: 500;
+  
+  display: flex;
+  
+  align-items: center;
+  
+  justify-content: center;
+  
+  gap: 8px;
+  
   transition:
     all .2s ease;
+    
+  box-shadow:
+    0 2px 8px rgba(0,0,0,.08);
+
+}
+
+#status::before {
+
+  content: '';
+
+  display: block;
+
+  width: 8px;
+
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: var(--status-color, #a1a1aa);
+
+  box-shadow: 0 0 8px var(--status-color, transparent);
+
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 
 }
 
 
 
+/* Updated save button with rounded pill shape and icon */
 #updateButton {
 
   flex-shrink: 0;
@@ -692,14 +720,14 @@ textarea {
 
   justify-content: center;
 
-  gap: 9px;
+  gap: 8px;
 
   padding:
-    0 19px;
+    0 20px;
 
   border: none;
 
-  border-radius: 8px;
+  border-radius: 12px;
 
   background:
     var(--primary);
@@ -750,26 +778,13 @@ textarea {
 
 }
 
+#updateButton svg {
 
-/* Update arrow */
-
-.update-icon {
-
-  width: 0;
-
-  height: 0;
-
-  border-top:
-    7px solid transparent;
-
-  border-bottom:
-    7px solid transparent;
-
-  border-left:
-    16px solid #ffffff;
-
+  width: 18px;
+  
+  height: 18px;
+  
 }
-
 
 
 
@@ -1238,30 +1253,24 @@ textarea {
       42px;
 
     padding:
-      0 13px;
+      0 14px;
 
     margin-left:
       7px;
 
     border-radius:
-      7px;
+      10px;
 
     font-size:
       13px;
 
   }
 
+  #updateButton svg {
 
-  .update-icon {
-
-    border-top-width:
-      6px;
-
-    border-bottom-width:
-      6px;
-
-    border-left-width:
-      13px;
+    width: 16px;
+    
+    height: 16px;
 
   }
 
@@ -1382,6 +1391,14 @@ textarea {
     font-size:
       12px;
 
+  }
+  
+  #updateButton svg {
+  
+    width: 14px;
+    
+    height: 14px;
+    
   }
 
 
@@ -1618,9 +1635,11 @@ and
       type="button"
     >
 
-
-      <span class="update-icon"></span>
-
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+        <polyline points="7 3 7 8 15 8"></polyline>
+      </svg>
 
       <span>
         Update
@@ -1661,6 +1680,21 @@ and
 
 <script>
 
+
+function updateStatus(text) {
+
+  status.textContent = text;
+  
+  let color = '#a1a1aa';
+  
+  if (text === 'ready' || text === 'saved') color = '#10b981'; // Green dot for ready
+  else if (text === 'saving...') color = '#3b82f6';
+  else if (text === 'unsaved') color = 'var(--primary)'; // Orange for unsaved
+  else if (text.includes('error') || text === 'disconnected') color = '#ef4444';
+  
+  status.style.setProperty('--status-color', color);
+  
+}
 
 
 function getApiHost() {
@@ -1780,8 +1814,7 @@ async function openPad() {
     room;
 
 
-  status.textContent =
-    "loading...";
+  updateStatus("loading...");
 
 
   const apiHost =
@@ -1845,8 +1878,7 @@ async function openPad() {
     () => {
 
 
-      status.textContent =
-        "ready";
+      updateStatus("ready");
 
 
     };
@@ -1881,8 +1913,7 @@ async function openPad() {
           m.text;
 
 
-        status.textContent =
-          "saved";
+        updateStatus("saved");
 
 
       }
@@ -1905,8 +1936,7 @@ async function openPad() {
     () => {
 
 
-      status.textContent =
-        "connection error";
+      updateStatus("connection error");
 
 
     };
@@ -1917,8 +1947,7 @@ async function openPad() {
     () => {
 
 
-      status.textContent =
-        "disconnected";
+      updateStatus("disconnected");
 
 
     };
@@ -2024,8 +2053,7 @@ pad.addEventListener(
     }
 
 
-    status.textContent =
-      "unsaved";
+    updateStatus("unsaved");
 
 
   }
@@ -2051,8 +2079,7 @@ updateButton.addEventListener(
     ) {
 
 
-      status.textContent =
-        "not connected";
+      updateStatus("not connected");
 
 
       return;
@@ -2061,8 +2088,7 @@ updateButton.addEventListener(
     }
 
 
-    status.textContent =
-      "saving...";
+    updateStatus("saving...");
 
 
     ws.send(
@@ -2083,8 +2109,7 @@ updateButton.addEventListener(
     );
 
 
-    status.textContent =
-      "saved";
+    updateStatus("saved");
 
 
   }
@@ -2125,8 +2150,7 @@ backButton.addEventListener(
       "flex";
 
 
-    status.textContent =
-      "idle";
+    updateStatus("idle");
 
 
     keyInput.focus();
