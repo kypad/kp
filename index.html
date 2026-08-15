@@ -1522,7 +1522,17 @@ and
 
 </style>
 
+
+<style>
+@media (max-width: 450px) {
+  #transferBtn {
+    padding: 4px 8px !important;
+    font-size: 11px !important;
+  }
+}
+</style>
 </head>
+
 
 
 <body>
@@ -1535,15 +1545,18 @@ and
 <div id="keyScreen">
 
   <div class="key-card">
-    <button onclick="startFileTransfer()" style="position: absolute; top: 42px; right: 42px; border: 2px solid var(--primary); background: transparent; color: var(--text); padding: 5px 12px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
-      Transfer Files
-    </button>
+    
 
 
 
-    <h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+    <h1 style="margin: 0;">
       Shared Clipboard
     </h1>
+    <button id="transferBtn" onclick="startFileTransfer()" style="border: 2px solid var(--primary); background: transparent; color: var(--text); padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap; margin-left: 10px;">
+      Transfer Files
+    </button>
+</div>
 
 
     <p>
